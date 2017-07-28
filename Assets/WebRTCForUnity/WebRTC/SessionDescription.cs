@@ -39,9 +39,11 @@ namespace iBicha
 			version = 0;
 			username = "-";
 			sessionName = "-";
+			media = new ObservableList<string> ();
+			media.Updated += SetDirty;
 		}
 
-		public  SessionDescription (string rawDescription) {
+		public  SessionDescription (string rawDescription) : this() {
 			RawDescriptionString = rawDescription;
 		}
 			
@@ -149,6 +151,12 @@ namespace iBicha
 			}
 		}
 
+		public ObservableList<string> Media {
+			get {
+				return media;
+			}
+		}
+
 		private string rawDescription;
 		private bool rawDescriptionIsDirty;
 
@@ -167,6 +175,11 @@ namespace iBicha
 		private DateTime? startDate;
 		private DateTime? endDate;
 
+		private ObservableList<string> media;
+
+		private void SetDirty() {
+			rawDescriptionIsDirty = true;
+		}
 
 		private void RebuildRawDescription() {
 			StringBuilder sb = new StringBuilder ();
@@ -175,6 +188,9 @@ namespace iBicha
 			sb.Append (string.Format ("{0}={1}\n", (char)DescriptionKeys.SessionName, this.SessionName));
 			sb.Append (string.Format ("{0}={1} {2}\n", (char)DescriptionKeys.SessionTime, this.StartDate.ToUnixTimestamp(), this.EndDate.ToUnixTimestamp()));
 			//TODO: rest of the attributes
+			foreach (string item in media) {
+				sb.Append (string.Format ("{0}={1}\n", (char)DescriptionKeys.MediaDescription, item));
+			}
 			rawDescription = sb.ToString ();
 			rawDescriptionIsDirty = false;
 		}
