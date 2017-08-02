@@ -110,8 +110,12 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
         videoTrack.addRenderer(new VideoRenderer(new VideoRenderer.Callbacks() {
             @Override
             public void renderFrame(VideoRenderer.I420Frame i420Frame) {
-                Log.d(TAG, "renderFrame: texture:" + i420Frame.textureId + " size:" + i420Frame.width + "x" + i420Frame.height +
-                        " yuvFrame:" + i420Frame.yuvFrame);
+                if (i420Frame.yuvFrame) {
+                    Log.d(TAG, i420Frame.toString());
+                } else {
+                    Log.d(TAG, "renderFrame: texture:" + i420Frame.textureId + " size:" + i420Frame.width + "x" + i420Frame.height +
+                            " yuvFrame:" + i420Frame.yuvFrame);
+                }
                 callback.renderFrame(i420Frame);
             }
         }));

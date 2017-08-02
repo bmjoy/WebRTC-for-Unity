@@ -35,13 +35,14 @@ namespace iBicha {
 
 
 		public void renderFrame(AndroidJavaObject i420Frame){
-			lastFrame = i420Frame;
 			ThreadUtils.RunOnRenderThread (() => {
+				KillLastFrame ();
+				lastFrame = i420Frame;
 				WebRTCAndroid.switchToUnityContext();
 				IntPtr textureId = new IntPtr(i420Frame.Get<int> ("textureId"));
 				int width = i420Frame.Get<int> ("width");
 				int height = i420Frame.Get<int> ("height");
-				Texture = Texture2D.CreateExternalTexture (width, height, TextureFormat.YUY2, false, false, textureId); 
+				Texture = Texture2D.CreateExternalTexture (width, height, TextureFormat.RGBA32, false, false, textureId); 
 				Action<Texture2D> OnTextureHandler = OnTexture;
 				if (OnTextureHandler != null) {
 					OnTextureHandler (Texture);
