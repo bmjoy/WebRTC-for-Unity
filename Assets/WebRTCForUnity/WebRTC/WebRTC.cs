@@ -20,8 +20,5 @@ namespace iBicha
 				return instance;
 			}
 		}
-
-	
-	
 	}
 }
