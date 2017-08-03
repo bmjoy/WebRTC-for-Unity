@@ -2,6 +2,14 @@
 WebRTC for Unity (WIP, NOT WORKING)
 This repo aims to facilitate WebRTC development in Unity, and maybe have a unifed API that behaves the same on different platforms.
 
+## Current state:
+Right now there is something weird going on with rendering the textures, as you can see in the image.
+One cube is supposed to show the screenshare texture, the other is supposed to show the camera.
+For some reason, it is showing the silhouette of the two cubes. Go figure.
+
+This should have to do with EGL context and sharing textures, threading, and/or frame rendering.
+I know we're getting a valid textureId out of the frames, but I can't figure out why it's not rendering properly.
+
 ## Roadmap:
 - [x] Create an android plugin 
 - [ ] Create an proxy to move I420 frames between the WebRTC and Unity (Textures)
@@ -16,3 +24,6 @@ This repo aims to facilitate WebRTC development in Unity, and maybe have a unife
 - [ ] Support for Standalone (Windows, OS X, Linux)
 - [ ] Support for Editor (Should be easy, if standalone works)
 - [ ] Create an interface API for signaling, that can be implemented for different ways of signaling (Websocket/Socket, Http, etc)
+
+## Contribution:
+Yes, please. If you think

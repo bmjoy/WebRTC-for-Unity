@@ -22,31 +22,33 @@ public class UnityEGLContext {
     private static final String TAG = UnityEGLContext.class.getSimpleName();
 
     public static void attachToUnity(PeerConnectionFactory factory) {
+        //If no acceleration, no need for any EGL work.
         if (!WebRTC.hwAccelerate)
             return;
-        EGLContext eglContext = unityContext;
-//        EGLDisplay eglDisplay = getEglDisplay();
-//        int[] keys = {EGL14.EGL_CONFIG_ID};
-//        int[] configAttributes = new int[keys.length * 2 + 1];
-//
-//        for (int i = 0; i < keys.length; i++) {
-//            configAttributes[i * 2] = keys[i];
-//            if (!EGL14.eglQueryContext(eglDisplay, eglContext, keys[i], configAttributes, i * 2 + 1)) {
-//                throw new RuntimeException("eglQueryContext failed: 0x" + Integer.toHexString(EGL14.eglGetError()));
-//            }
-//        }
-//
-//        configAttributes[configAttributes.length - 1] = EGL14.EGL_NONE;
-//        Log.d(TAG, "got configAttributes");
-//        int[] configAttributes = {
-//                EGL14.EGL_CONFIG_ID, -1,
-//                EGL14.EGL_NONE
-//        };
 
+        //First approach: creating a context, getting config attributes, and let EglBase handle it.
 
-        EglBase14Wrapper contextWrapper = new EglBase14Wrapper(eglContext);
+        /*EGLContext eglContext = getEglContext();
+        EGLDisplay eglDisplay = getEglDisplay();
+        int[] keys = {EGL14.EGL_CONFIG_ID};
+        int[] configAttributes = new int[keys.length * 2 + 1];
 
-//        EglBase rootEglBase = EglBase.createEgl14(eglContext, configAttributes);
+        for (int i = 0; i < keys.length; i++) {
+            configAttributes[i * 2] = keys[i];
+            if (!EGL14.eglQueryContext(eglDisplay, eglContext, keys[i], configAttributes, i * 2 + 1)) {
+                throw new RuntimeException("eglQueryContext failed: 0x" + Integer.toHexString(EGL14.eglGetError()));
+            }
+        }
+
+        configAttributes[configAttributes.length - 1] = EGL14.EGL_NONE;
+        Log.d(TAG, "got configAttributes");
+        EglBase rootEglBase = EglBase.createEgl14(eglContext, configAttributes);
+        factory.setVideoHwAccelerationOptions(rootEglBase.getEglBaseContext(), rootEglBase.getEglBaseContext());
+        */
+
+        //Second approach: pass the unityContext that we recovered while in the rendering thread (in the Update method)
+        //Wrap it and pass it to the factory.
+        EglBase14Wrapper contextWrapper = new EglBase14Wrapper(unityContext);
         factory.setVideoHwAccelerationOptions(contextWrapper.getEglBaseContext(), contextWrapper.getEglBaseContext());
     }
 
@@ -69,6 +71,7 @@ public class UnityEGLContext {
         VideoRenderer.renderFrameDone(i420Frame);
     }
 
+    //This is called from the Unity main thread, so we can keep a reference to it
     public static void eglContextSet() {
         unityContext = EGL14.eglGetCurrentContext();
         unityDisplay = EGL14.eglGetCurrentDisplay();
