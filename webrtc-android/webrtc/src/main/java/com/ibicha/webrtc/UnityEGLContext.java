@@ -8,6 +8,8 @@ import android.opengl.EGLSurface;
 import android.util.Log;
 
 import org.webrtc.EglBase;
+import org.webrtc.EglBase14Wrapper;
+import org.webrtc.GlRectDrawer;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoRenderer;
@@ -22,27 +24,30 @@ public class UnityEGLContext {
     public static void attachToUnity(PeerConnectionFactory factory) {
         if (!WebRTC.hwAccelerate)
             return;
-        EGLContext eglContext = getEglContext();
-        EGLDisplay eglDisplay = getEglDisplay();
-        int[] keys = {EGL14.EGL_CONFIG_ID};
-        int[] configAttributes = new int[keys.length * 2 + 1];
-
-        for (int i = 0; i < keys.length; i++) {
-            configAttributes[i * 2] = keys[i];
-            if (!EGL14.eglQueryContext(eglDisplay, eglContext, keys[i], configAttributes, i * 2 + 1)) {
-                throw new RuntimeException("eglQueryContext failed: 0x" + Integer.toHexString(EGL14.eglGetError()));
-            }
-        }
-
-        configAttributes[configAttributes.length - 1] = EGL14.EGL_NONE;
-        Log.d(TAG, "got configAttributes");
+        EGLContext eglContext = unityContext;
+//        EGLDisplay eglDisplay = getEglDisplay();
+//        int[] keys = {EGL14.EGL_CONFIG_ID};
+//        int[] configAttributes = new int[keys.length * 2 + 1];
+//
+//        for (int i = 0; i < keys.length; i++) {
+//            configAttributes[i * 2] = keys[i];
+//            if (!EGL14.eglQueryContext(eglDisplay, eglContext, keys[i], configAttributes, i * 2 + 1)) {
+//                throw new RuntimeException("eglQueryContext failed: 0x" + Integer.toHexString(EGL14.eglGetError()));
+//            }
+//        }
+//
+//        configAttributes[configAttributes.length - 1] = EGL14.EGL_NONE;
+//        Log.d(TAG, "got configAttributes");
 //        int[] configAttributes = {
 //                EGL14.EGL_CONFIG_ID, -1,
 //                EGL14.EGL_NONE
 //        };
 
-        EglBase rootEglBase = EglBase.createEgl14(eglContext, configAttributes);
-        factory.setVideoHwAccelerationOptions(rootEglBase.getEglBaseContext(), rootEglBase.getEglBaseContext());
+
+        EglBase14Wrapper contextWrapper = new EglBase14Wrapper(eglContext);
+
+//        EglBase rootEglBase = EglBase.createEgl14(eglContext, configAttributes);
+        factory.setVideoHwAccelerationOptions(contextWrapper.getEglBaseContext(), contextWrapper.getEglBaseContext());
     }
 
     public static EGLContext unityContext = EGL14.EGL_NO_CONTEXT;
