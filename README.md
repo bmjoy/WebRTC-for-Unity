@@ -10,6 +10,8 @@ For some reason, it is showing the silhouette of the two cubes. Go figure.
 This should have to do with EGL context and sharing textures, threading, and/or frame rendering.
 I know we're getting a valid textureId out of the frames, but I can't figure out why it's not rendering properly.
 
+***This is using the Stardard shader. With a Unlit Texture shader, the cubes are white (In some other cases the cubes are red)***
+
 <img src="https://dl2.pushbulletusercontent.com/GhJCzRvohgtAZiYhbetqBdUjTMhsP77N/Screenshot_20170803-094159.png" width="200" />
 
 ## Roadmap:
