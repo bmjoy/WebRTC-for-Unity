@@ -28,4 +28,4 @@ I know we're getting a valid textureId out of the frames, but I can't figure out
 - [ ] Create an interface API for signaling, that can be implemented for different ways of signaling (Websocket/Socket, Http, etc)
 
 ## Contribution:
-Yes, please. If you think
+Yes, please. If you think you can contribute to any of the points above, or have any suggestions, design thoughts, use cases, anything really, go ahead and open an issue and/or create a pull request.
