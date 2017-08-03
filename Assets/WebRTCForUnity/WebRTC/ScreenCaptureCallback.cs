@@ -13,15 +13,7 @@ namespace iBicha {
 		public event Action<string> OnVideoCapturerError;
 
 
-		private AndroidJavaObject lastFrame;
 		public ScreenCaptureCallback () : base ("com.ibicha.webrtc.ScreenCaptureCallback") {
-		}
-
-		private void KillLastFrame() {
-			if (lastFrame != null) {
-				WebRTCAndroid.KillFrame (lastFrame);
-				lastFrame = null;
-			}
 		}
 
 		public void onVideoCapturerStarted(AndroidJavaObject capturer){
@@ -36,21 +28,25 @@ namespace iBicha {
 
 		public void renderFrame(AndroidJavaObject i420Frame){
 			ThreadUtils.RunOnRenderThread (() => {
-				KillLastFrame ();
-				lastFrame = i420Frame;
-				WebRTCAndroid.switchToUnityContext();
+				FrameKiller.ScheduleKillFrame (i420Frame);
+				//WebRTCAndroid.switchToUnityContext();
 				IntPtr textureId = new IntPtr(i420Frame.Get<int> ("textureId"));
-				int width = i420Frame.Get<int> ("width");
-				int height = i420Frame.Get<int> ("height");
-				Texture = Texture2D.CreateExternalTexture (width, height, TextureFormat.RGBA32, false, false, textureId); 
-				Action<Texture2D> OnTextureHandler = OnTexture;
-				if (OnTextureHandler != null) {
-					OnTextureHandler (Texture);
+				if(Texture == null) {
+					int width = i420Frame.Get<int> ("width");
+					int height = i420Frame.Get<int> ("height");
+					Texture = Texture2D.CreateExternalTexture (width, height, TextureFormat.RGBA32, false, false, textureId); 
+					Action<Texture2D> OnTextureHandler = OnTexture;
+					if (OnTextureHandler != null) {
+						OnTextureHandler (Texture);
+					}
+				} else {
+					Texture.UpdateExternalTexture(textureId);
 				}
 			});
 		}
 
 		public void onVideoCapturerStopped(){
+			Texture = null;
 			ThreadUtils.RunOnRenderThread (() => {
 				Action OnVideoCapturerStoppedHandler = OnVideoCapturerStopped;
 				if (OnVideoCapturerStoppedHandler != null) {
@@ -60,6 +56,7 @@ namespace iBicha {
 		}
 
 		public void onVideoCapturerError(string error){
+			Texture = null;
 			ThreadUtils.RunOnRenderThread (() => {
 				Action<string> OnVideoCapturerErrorHandler = OnVideoCapturerError;
 				if (OnVideoCapturerErrorHandler != null) {

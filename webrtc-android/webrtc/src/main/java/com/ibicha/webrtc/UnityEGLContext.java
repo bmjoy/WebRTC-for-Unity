@@ -11,6 +11,7 @@ import org.webrtc.EglBase;
 import org.webrtc.EglBase14Wrapper;
 import org.webrtc.GlRectDrawer;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoRenderer;
 
@@ -28,28 +29,18 @@ public class UnityEGLContext {
 
         //First approach: creating a context, getting config attributes, and let EglBase handle it.
 
-        /*EGLContext eglContext = getEglContext();
-        EGLDisplay eglDisplay = getEglDisplay();
-        int[] keys = {EGL14.EGL_CONFIG_ID};
-        int[] configAttributes = new int[keys.length * 2 + 1];
+        EGLContext eglContext = unityContext;
+        EGLDisplay eglDisplay = unityDisplay;
+        //int[] configAttributes = getEglConfigAttr(eglDisplay, eglContext);
 
-        for (int i = 0; i < keys.length; i++) {
-            configAttributes[i * 2] = keys[i];
-            if (!EGL14.eglQueryContext(eglDisplay, eglContext, keys[i], configAttributes, i * 2 + 1)) {
-                throw new RuntimeException("eglQueryContext failed: 0x" + Integer.toHexString(EGL14.eglGetError()));
-            }
-        }
-
-        configAttributes[configAttributes.length - 1] = EGL14.EGL_NONE;
-        Log.d(TAG, "got configAttributes");
-        EglBase rootEglBase = EglBase.createEgl14(eglContext, configAttributes);
+        EglBase rootEglBase = EglBase.createEgl14(eglContext, EglBase.CONFIG_PIXEL_RGBA_BUFFER);
+        rootEglBase.createDummyPbufferSurface();
         factory.setVideoHwAccelerationOptions(rootEglBase.getEglBaseContext(), rootEglBase.getEglBaseContext());
-        */
 
         //Second approach: pass the unityContext that we recovered while in the rendering thread (in the Update method)
         //Wrap it and pass it to the factory.
-        EglBase14Wrapper contextWrapper = new EglBase14Wrapper(unityContext);
-        factory.setVideoHwAccelerationOptions(contextWrapper.getEglBaseContext(), contextWrapper.getEglBaseContext());
+//        EglBase14Wrapper contextWrapper = new EglBase14Wrapper(EGL14.eglGetCurrentContext());
+//        factory.setVideoHwAccelerationOptions(contextWrapper.getEglBaseContext(), contextWrapper.getEglBaseContext());
     }
 
     public static EGLContext unityContext = EGL14.EGL_NO_CONTEXT;
@@ -101,6 +92,21 @@ public class UnityEGLContext {
         if (!EGL14.eglMakeCurrent(unityDisplay, unityDrawSurface, unityReadSurface, unityContext)) {
             throw new RuntimeException("switchToUnityContext eglMakeCurrent failed: 0x" + Integer.toHexString(EGL14.eglGetError()));
         }
+    }
+
+    private static int[] getEglConfigAttr(EGLDisplay eglDisplay, EGLContext eglContext) {
+        int[] keys = {EGL14.EGL_CONFIG_ID};
+        int[] configAttributes = new int[keys.length * 2 + 1];
+
+        for (int i = 0; i < keys.length; i++) {
+            configAttributes[i * 2] = keys[i];
+            if (!EGL14.eglQueryContext(eglDisplay, eglContext, keys[i], configAttributes, i * 2 + 1)) {
+                throw new RuntimeException("eglQueryContext failed: 0x" + Integer.toHexString(EGL14.eglGetError()));
+            }
+        }
+
+        configAttributes[configAttributes.length - 1] = EGL14.EGL_NONE;
+        return configAttributes;
     }
 
     private static EGLConfig getEglConfig(EGLDisplay eglDisplay) {

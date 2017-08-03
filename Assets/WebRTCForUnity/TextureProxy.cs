@@ -7,6 +7,7 @@ namespace iBicha
 	public class TextureProxy : MonoBehaviour {
 		public Material material;
 		public ScreenCaptureCallback screenCaptureCallback;
+		public RenderTexture rendText;
 		// Use this for initialization
 		void Start () {
 			if (material == null) {
@@ -24,6 +25,7 @@ namespace iBicha
 				print("OnVideoCapturerError " + error);
 			};
 			screenCaptureCallback.OnTexture += (texture) => {
+				Graphics.Blit(texture, rendText);
 				material.mainTexture = texture;
 			};
 

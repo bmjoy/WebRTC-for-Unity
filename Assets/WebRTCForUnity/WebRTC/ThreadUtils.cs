@@ -23,7 +23,7 @@ namespace iBicha
 			}
 		}
 
-		private static Queue<Action> queue = new Queue<Action> ();
+		public static Queue<Action> queue = new Queue<Action> ();
 
 		public static void RunOnRenderThread(Action action) {
 			queue.Enqueue (action);
