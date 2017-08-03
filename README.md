@@ -10,6 +10,8 @@ For some reason, it is showing the silhouette of the two cubes. Go figure.
 This should have to do with EGL context and sharing textures, threading, and/or frame rendering.
 I know we're getting a valid textureId out of the frames, but I can't figure out why it's not rendering properly.
 
+<img src="https://dl2.pushbulletusercontent.com/GhJCzRvohgtAZiYhbetqBdUjTMhsP77N/Screenshot_20170803-094159.png" width="200" />
+
 ## Roadmap:
 - [x] Create an android plugin 
 - [ ] Create an proxy to move I420 frames between the WebRTC and Unity (Textures)
