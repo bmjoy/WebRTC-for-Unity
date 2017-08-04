@@ -7,7 +7,6 @@ using System;
 namespace iBicha
 {
 	public abstract class WebRTC {
-		public static event Action onIceCandidate;
 
 		private static WebRTC instance;
 		public static WebRTC Instance {

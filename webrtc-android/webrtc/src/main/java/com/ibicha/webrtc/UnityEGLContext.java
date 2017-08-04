@@ -1,11 +1,15 @@
 package com.ibicha.webrtc;
 
+import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
 import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
+import android.view.Surface;
 
 import org.webrtc.EglBase;
 import org.webrtc.EglBase14Wrapper;
@@ -22,24 +26,27 @@ import org.webrtc.VideoRenderer;
 public class UnityEGLContext {
     private static final String TAG = UnityEGLContext.class.getSimpleName();
 
-    public static void attachToUnity(PeerConnectionFactory factory) {
+    public static EglBase attachToUnity(PeerConnectionFactory factory) {
         //If no acceleration, no need for any EGL work.
         if (!WebRTC.hwAccelerate)
-            return;
+            return null;
 
         //First approach: creating a context, getting config attributes, and let EglBase handle it.
 
-        EGLContext eglContext = unityContext;
-        EGLDisplay eglDisplay = unityDisplay;
-        //int[] configAttributes = getEglConfigAttr(eglDisplay, eglContext);
+        EGLContext eglContext = unityContext; // getEglContext();
+        EGLDisplay eglDisplay = unityDisplay; // getEglDisplay();
+        int[] configAttributes = getEglConfigAttr(eglDisplay, eglContext);
+//        int[] configAttributes = EglBase.CONFIG_PIXEL_RGBA_BUFFER;
 
-        EglBase rootEglBase = EglBase.createEgl14(eglContext, EglBase.CONFIG_PIXEL_RGBA_BUFFER);
+        EglBase rootEglBase = EglBase.createEgl14(eglContext, configAttributes);
         rootEglBase.createDummyPbufferSurface();
+        rootEglBase.makeCurrent();
         factory.setVideoHwAccelerationOptions(rootEglBase.getEglBaseContext(), rootEglBase.getEglBaseContext());
-
+        return rootEglBase;
         //Second approach: pass the unityContext that we recovered while in the rendering thread (in the Update method)
         //Wrap it and pass it to the factory.
-//        EglBase14Wrapper contextWrapper = new EglBase14Wrapper(EGL14.eglGetCurrentContext());
+//        EGLContext eglContext = unityContext;
+//        EglBase14Wrapper contextWrapper = new EglBase14Wrapper(eglContext);
 //        factory.setVideoHwAccelerationOptions(contextWrapper.getEglBaseContext(), contextWrapper.getEglBaseContext());
     }
 
@@ -68,6 +75,8 @@ public class UnityEGLContext {
         unityDisplay = EGL14.eglGetCurrentDisplay();
         unityDrawSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW);
         unityReadSurface = EGL14.eglGetCurrentSurface(EGL14.EGL_READ);
+        Log.d(TAG, "eglContextSet: unityThread.getName() " + Thread.currentThread().getName());
+
         if (unityContext == EGL14.EGL_NO_CONTEXT) {
             Log.d(TAG, "eglContextSet: unityContext == EGL_NO_CONTEXT");
         }

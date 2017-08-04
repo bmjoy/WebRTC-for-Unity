@@ -8,7 +8,7 @@ namespace iBicha
 		[RuntimeInitializeOnLoadMethod]
 		static void eglContextSet()
 		{
-			ThreadUtils.RunOnRenderThread (() => {
+			ThreadUtils.RunOnUpdate (() => {
 				UnityEGLContext_JavaClass.CallStatic ("eglContextSet");
 			});
 		}

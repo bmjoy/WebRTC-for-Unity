@@ -16,8 +16,13 @@ namespace iBicha {
 		public ScreenCaptureCallback () : base ("com.ibicha.webrtc.ScreenCaptureCallback") {
 		}
 
+		public static void KillFrame(AndroidJavaObject i420Frame) {
+			ThreadUtils.RunOnPostRender (() => {
+				WebRTCAndroid.KillFrame(i420Frame);
+			});
+		}
 		public void onVideoCapturerStarted(AndroidJavaObject capturer){
-			ThreadUtils.RunOnRenderThread (() => {
+			ThreadUtils.RunOnUpdate (() => {
 				Action OnVideoCapturerStartedHandler = OnVideoCapturerStarted;
 				if (OnVideoCapturerStartedHandler != null) {
 					OnVideoCapturerStartedHandler ();
@@ -27,27 +32,30 @@ namespace iBicha {
 
 
 		public void renderFrame(AndroidJavaObject i420Frame){
-			ThreadUtils.RunOnRenderThread (() => {
-				FrameKiller.ScheduleKillFrame (i420Frame);
-				//WebRTCAndroid.switchToUnityContext();
+			ThreadUtils.RunOnPreRender (() => {
+				WebRTCAndroid.switchToUnityContext();
 				IntPtr textureId = new IntPtr(i420Frame.Get<int> ("textureId"));
 				if(Texture == null) {
 					int width = i420Frame.Get<int> ("width");
 					int height = i420Frame.Get<int> ("height");
-					Texture = Texture2D.CreateExternalTexture (width, height, TextureFormat.RGBA32, false, false, textureId); 
-					Action<Texture2D> OnTextureHandler = OnTexture;
-					if (OnTextureHandler != null) {
-						OnTextureHandler (Texture);
-					}
+					Debug.Log(string.Format("GotFrame: {0}x{1}", width,height));
+					Texture = Texture2D.CreateExternalTexture (width, height, TextureFormat.RGB24, false, false, textureId); 
 				} else {
 					Texture.UpdateExternalTexture(textureId);
 				}
+
+				Action<Texture2D> OnTextureHandler = OnTexture;
+				if (OnTextureHandler != null) {
+					OnTextureHandler (Texture);
+					KillFrame(i420Frame);
+				}
+
 			});
 		}
 
 		public void onVideoCapturerStopped(){
 			Texture = null;
-			ThreadUtils.RunOnRenderThread (() => {
+			ThreadUtils.RunOnUpdate (() => {
 				Action OnVideoCapturerStoppedHandler = OnVideoCapturerStopped;
 				if (OnVideoCapturerStoppedHandler != null) {
 					OnVideoCapturerStoppedHandler ();
@@ -57,7 +65,7 @@ namespace iBicha {
 
 		public void onVideoCapturerError(string error){
 			Texture = null;
-			ThreadUtils.RunOnRenderThread (() => {
+			ThreadUtils.RunOnUpdate (() => {
 				Action<string> OnVideoCapturerErrorHandler = OnVideoCapturerError;
 				if (OnVideoCapturerErrorHandler != null) {
 					OnVideoCapturerErrorHandler (error);

@@ -72,6 +72,12 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
         this.videoFps = videoFps;
 
         Log.d(TAG, "Got size: " + videoWidth + "x" + videoHeight);
+
+        PeerConnectionFactory.initializeAndroidGlobals(mainActivity.getApplicationContext(), WebRTC.hwAccelerate);
+        factory = new PeerConnectionFactory(new PeerConnectionFactory.Options());
+
+        UnityEGLContext.attachToUnity(factory);
+
         MediaProjectionManager mediaProjectionManager =
                 (MediaProjectionManager) mainActivity.getApplication().getSystemService(
                         Context.MEDIA_PROJECTION_SERVICE);
@@ -79,6 +85,8 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
                 mediaProjectionManager.createScreenCaptureIntent(), CAPTURE_PERMISSION_REQUEST_CODE);
 
     }
+
+    static PeerConnectionFactory factory;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
@@ -98,10 +106,7 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
             }
         });
 
-        PeerConnectionFactory.initializeAndroidGlobals(mainActivity.getApplicationContext(), WebRTC.hwAccelerate);
-        final PeerConnectionFactory factory = new PeerConnectionFactory(new PeerConnectionFactory.Options());
 
-        UnityEGLContext.attachToUnity(factory);
 
         VideoSource videoSource = factory.createVideoSource(capturer);
         capturer.startCapture(videoWidth, videoHeight, videoFps);

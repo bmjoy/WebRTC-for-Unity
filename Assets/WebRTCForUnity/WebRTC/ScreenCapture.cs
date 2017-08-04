@@ -8,7 +8,7 @@ namespace iBicha
 
 		public static void StartScreenCapture(ScreenCaptureCallback callback)
 		{
-			ThreadUtils.RunOnRenderThread (()=>{
+			ThreadUtils.RunOnUpdate (()=>{
 				WebRTCAndroid.WebRTC_JavaClass.CallStatic("StartScreenCapture", callback);
 			});
 		}
