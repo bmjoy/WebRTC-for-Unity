@@ -333,6 +333,7 @@ public class YuvFrame {
 
         if (cacheBitmap == null || cacheBitmap.getWidth() != width || cacheBitmap.getHeight() != height) {
             cacheBitmap = Bitmap.createBitmap(argb, width, height, Bitmap.Config.ARGB_8888);
+            cacheBitmap.setPremultiplied(false);
         } else {
             cacheBitmap.copyPixelsFromBuffer(IntBuffer.wrap(argb));
         }

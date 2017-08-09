@@ -5,7 +5,8 @@ using System;
 
 namespace iBicha {
 	public class ScreenCaptureCallback : AndroidJavaProxy {
-		public Texture2D Texture;
+		private int bufferIndex = 0;
+		public Texture2D[] TextureBuffers = null;
 		public event Action OnVideoCapturerStarted;
 		public event Action<Texture2D> OnTexture;
 		public event Action OnVideoCapturerStopped;
@@ -35,18 +36,22 @@ namespace iBicha {
 					nativeTexture.UpdateExternalTexture(textureId);
 				}
 
-				if(Texture == null || Texture.width != width || Texture.height != height) {
-					Texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-					Graphics.ConvertTexture(nativeTexture, Texture);
-					Texture.filterMode = FilterMode.Point;
-					Texture.wrapMode = TextureWrapMode.Clamp;
+				if(TextureBuffers == null || TextureBuffers[0].width != width || TextureBuffers[0].height != height) {
+					TextureBuffers = new Texture2D[2];
+					for (int i = 0; i < TextureBuffers.Length; i++) {
+						TextureBuffers[i] =new Texture2D(width, height, TextureFormat.RGBA32, false);
+						Graphics.ConvertTexture(nativeTexture, TextureBuffers[i]);
+						TextureBuffers[i].filterMode = FilterMode.Point;
+						TextureBuffers[i].wrapMode = TextureWrapMode.Clamp;
+					}
 				}
 
-				Graphics.CopyTexture(nativeTexture, Texture);
+				Graphics.CopyTexture(nativeTexture, TextureBuffers[bufferIndex]);
 
 				Action<Texture2D> OnTextureHandler = OnTexture;
 				if (OnTextureHandler != null) {
-					OnTextureHandler (Texture);
+					OnTextureHandler (TextureBuffers[bufferIndex]);
+					bufferIndex = (bufferIndex + 1) % 2;
 				}
 
 				ThreadUtils.RunOnPostRender(()=>{
@@ -58,19 +63,22 @@ namespace iBicha {
 
 		public void renderFrameBuffer(int width, int height, AndroidJavaObject bufferWrap, AndroidJavaObject i420Frame){
 			ThreadUtils.RunOnUpdate (() => {
-				if(Texture == null || Texture.width != width || Texture.height != height) {
-					Texture = new Texture2D(width, height, TextureFormat.ARGB32, false);
-					Texture.filterMode = FilterMode.Point;
-					Texture.wrapMode = TextureWrapMode.Clamp;
+				if(TextureBuffers == null || TextureBuffers[0].width != width || TextureBuffers[0].height != height) {
+					TextureBuffers = new Texture2D[2];
+					for (int i = 0; i < TextureBuffers.Length; i++) {
+						TextureBuffers[i] = new Texture2D(width, height, TextureFormat.ARGB32, false);
+						TextureBuffers[i].filterMode = FilterMode.Point;
+						TextureBuffers[i].wrapMode = TextureWrapMode.Clamp;
+					}
 				}
 
 				byte[] buffer = bufferWrap.Call<byte[]>("getBuffer");
-				Debug.Log(buffer.Length);
-				Texture.LoadRawTextureData(buffer);
-				Texture.Apply();
+				TextureBuffers[bufferIndex].LoadRawTextureData(buffer);
+				TextureBuffers[bufferIndex].Apply();
 				Action<Texture2D> OnTextureHandler = OnTexture;
 				if (OnTextureHandler != null) {
-					OnTextureHandler (Texture);
+					OnTextureHandler (TextureBuffers[bufferIndex]);
+					bufferIndex = (bufferIndex + 1) % 2;
 				}
 
 				ThreadUtils.RunOnPostRender(()=>{
@@ -82,10 +90,7 @@ namespace iBicha {
 
 		public void onVideoCapturerStopped(){
 			ThreadUtils.RunOnUpdate (() => {
-				GameObject.Destroy (Texture);
-				GameObject.Destroy (nativeTexture);
-				Texture = null;
-				Texture = nativeTexture;
+				CleanUp();
 				Action OnVideoCapturerStoppedHandler = OnVideoCapturerStopped;
 				if (OnVideoCapturerStoppedHandler != null) {
 					OnVideoCapturerStoppedHandler ();
@@ -95,15 +100,23 @@ namespace iBicha {
 
 		public void onVideoCapturerError(string error){
 			ThreadUtils.RunOnUpdate (() => {
-				GameObject.Destroy (Texture);
-				GameObject.Destroy (nativeTexture);
-				Texture = null;
-				Texture = nativeTexture;
+				CleanUp();
 				Action<string> OnVideoCapturerErrorHandler = OnVideoCapturerError;
 				if (OnVideoCapturerErrorHandler != null) {
 					OnVideoCapturerErrorHandler (error);
 				}
 			});
+		}
+
+		void CleanUp() {
+			if (TextureBuffers != null) {
+				for (int i = 0; i < TextureBuffers.Length; i++) {
+					GameObject.Destroy (TextureBuffers[i]);
+				}
+				GameObject.Destroy (nativeTexture);
+				TextureBuffers = null;
+				nativeTexture = null;
+			}
 		}
 	}
 
