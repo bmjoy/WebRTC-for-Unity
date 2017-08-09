@@ -10,7 +10,9 @@ import org.webrtc.VideoTrack;
 public interface ScreenCaptureCallback {
     public void onVideoCapturerStarted(VideoTrack capturer);
 
-    public void renderFrame(VideoRenderer.I420Frame i420Frame);
+    public void renderFrameTexture(int width, int height, int texture, VideoRenderer.I420Frame i420Frame);
+
+    public void renderFrameBuffer(int width, int height, BufferWrap buffer, VideoRenderer.I420Frame i420Frame);
 
     public void onVideoCapturerStopped();
 

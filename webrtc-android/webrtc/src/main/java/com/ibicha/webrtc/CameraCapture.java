@@ -2,24 +2,16 @@ package com.ibicha.webrtc;
 
 import android.app.Activity;
 import android.content.Context;
-import android.os.Environment;
 import android.util.Log;
 
 import org.webrtc.Camera1Enumerator;
-import org.webrtc.Camera2Enumerator;
 import org.webrtc.CameraEnumerator;
-import org.webrtc.EglBase;
-import org.webrtc.FileVideoCapturer;
 import org.webrtc.Logging;
-import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoFileRenderer;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 
 /**
@@ -60,30 +52,27 @@ public class CameraCapture {
         CameraCapture.videoFps = videoFps;
 
 
-        PeerConnectionFactory.initializeAndroidGlobals(mainActivity.getApplicationContext(), WebRTC.hwAccelerate);
-        final PeerConnectionFactory factory = new PeerConnectionFactory(new PeerConnectionFactory.Options());
-
         final int finalVideoWidth = videoWidth;
         final int finalVideoHeight = videoHeight;
         final int finalVideoFps = videoFps;
-        final EglBase rootEglBase = UnityEGLContext.attachToUnity(factory);
 
 
-        VideoSource videoSource = factory.createVideoSource(videoCapturer);
+        VideoSource videoSource = UnityEGLUtils.getFactory(mainActivity).createVideoSource(videoCapturer);
         videoCapturer.startCapture(finalVideoWidth, finalVideoHeight, finalVideoFps);
-        VideoTrack videoTrack = factory.createVideoTrack("ARDAMSv0", videoSource);
+        VideoTrack videoTrack = UnityEGLUtils.getFactory(mainActivity).createVideoTrack("ARDAMSv0", videoSource);
         videoTrack.setEnabled(true);
         videoTrack.addRenderer(new VideoRenderer(new VideoRenderer.Callbacks() {
             @Override
             public void renderFrame(VideoRenderer.I420Frame i420Frame) {
-                Log.d(TAG, "renderFrame: Threads: " + Thread.activeCount() + " current: " + Thread.currentThread().getName());
                 if (i420Frame.yuvFrame) {
                     Log.d(TAG, i420Frame.toString());
+                    YuvFrame frame = new YuvFrame(i420Frame);
+                    callback.renderFrameBuffer(i420Frame.width, i420Frame.height, new BufferWrap(frame.getARGBBuffer()), i420Frame);
                 } else {
                     Log.d(TAG, "renderFrame: texture:" + i420Frame.textureId + " size:" + i420Frame.width + "x" + i420Frame.height +
                             " yuvFrame:" + i420Frame.yuvFrame);
+                    callback.renderFrameTexture(i420Frame.width, i420Frame.height, i420Frame.textureId, i420Frame);
                 }
-                callback.renderFrame(i420Frame);
             }
         }));
 
@@ -101,10 +90,12 @@ public class CameraCapture {
 
     }
 
+    static int frames = 0;
+
     static VideoFileRenderer fileRenderer;
 
     private static VideoCapturer createCameraCapturer(Context context, boolean frontCamera) {
-        CameraEnumerator enumerator = new Camera2Enumerator(context);
+        CameraEnumerator enumerator = new Camera1Enumerator(WebRTC.hwAccelerate);// new Camera2Enumerator(context);
         final String[] deviceNames = enumerator.getDeviceNames();
 
         // First, try to find front facing camera

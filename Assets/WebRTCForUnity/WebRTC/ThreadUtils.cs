@@ -30,31 +30,54 @@ namespace iBicha
 		public static Queue<Action> updateQueue = new Queue<Action> ();
 		public static Queue<Action> preRenderQueue = new Queue<Action> ();
 		public static Queue<Action> postRenderQueue = new Queue<Action> ();
+		private static object updateQueueLock = new object();
+		private static object preRenderQueueLock = new object();
+		private static object postRenderQueueLock = new object();
 
 		public static void RunOnUpdate(Action action) {
-			updateQueue.Enqueue (action);
+			lock (updateQueueLock)  
+			{  
+				updateQueue.Enqueue (action);
+			}  
+
 		}
 
 		public static void RunOnPreRender(Action action) {
-			preRenderQueue.Enqueue (action);
+			lock (preRenderQueueLock)  
+			{  
+				preRenderQueue.Enqueue (action);
+			}  
+
 		}
 		public static void RunOnPostRender(Action action) {
-			postRenderQueue.Enqueue (action);
+			lock (postRenderQueueLock)  
+			{  
+				postRenderQueue.Enqueue (action);
+			}  
 		}
 
 
 		void Update () {
-			DrainQueue (updateQueue);
+			lock (updateQueueLock)  
+			{  
+				DrainQueue (updateQueue);
+			}  
 		}
 
 
 		void OnPreRender() {
-			DrainQueue (preRenderQueue);
+			lock (preRenderQueueLock)  
+			{  
+				DrainQueue (preRenderQueue);
+			}  
 		}
 
 		public void OnPostRender()
 		{
-			DrainQueue (postRenderQueue);
+			lock (postRenderQueueLock)  
+			{  
+				DrainQueue (postRenderQueue);
+			}  
 		}
 
 

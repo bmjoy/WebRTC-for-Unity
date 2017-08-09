@@ -5,7 +5,9 @@ using UnityEngine;
 namespace iBicha
 {
 	public class WebRTCAndroid : WebRTC {
+#if !UNITY_EDITOR
 		[RuntimeInitializeOnLoadMethod]
+#endif
 		static void eglContextSet()
 		{
 			ThreadUtils.RunOnUpdate (() => {
@@ -22,7 +24,7 @@ namespace iBicha
 		}
 
 		static AndroidJavaClass _WebRTC_JavaClass;
-		static AndroidJavaClass _UnityEGLContext_JavaClass;
+		static AndroidJavaClass _UnityEGLUtils_JavaClass;
 
 		public static AndroidJavaClass WebRTC_JavaClass {
 			get
@@ -38,11 +40,11 @@ namespace iBicha
 		public static AndroidJavaClass UnityEGLContext_JavaClass {
 			get
 			{
-				if(_UnityEGLContext_JavaClass == null)
+				if(_UnityEGLUtils_JavaClass == null)
 				{
-					_UnityEGLContext_JavaClass = new AndroidJavaClass("com.ibicha.webrtc.UnityEGLContext");
+					_UnityEGLUtils_JavaClass = new AndroidJavaClass("com.ibicha.webrtc.UnityEGLUtils");
 				}
-				return _UnityEGLContext_JavaClass;
+				return _UnityEGLUtils_JavaClass;
 			}
 		}
 

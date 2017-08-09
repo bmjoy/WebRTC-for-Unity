@@ -9,7 +9,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.WindowManager;
 
-import org.webrtc.PeerConnectionFactory;
 import org.webrtc.ScreenCapturerAndroid;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
@@ -73,11 +72,6 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
 
         Log.d(TAG, "Got size: " + videoWidth + "x" + videoHeight);
 
-        PeerConnectionFactory.initializeAndroidGlobals(mainActivity.getApplicationContext(), WebRTC.hwAccelerate);
-        factory = new PeerConnectionFactory(new PeerConnectionFactory.Options());
-
-        UnityEGLContext.attachToUnity(factory);
-
         MediaProjectionManager mediaProjectionManager =
                 (MediaProjectionManager) mainActivity.getApplication().getSystemService(
                         Context.MEDIA_PROJECTION_SERVICE);
@@ -85,8 +79,6 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
                 mediaProjectionManager.createScreenCaptureIntent(), CAPTURE_PERMISSION_REQUEST_CODE);
 
     }
-
-    static PeerConnectionFactory factory;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
@@ -108,20 +100,23 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
 
 
 
-        VideoSource videoSource = factory.createVideoSource(capturer);
+        VideoSource videoSource = UnityEGLUtils.getFactory(mainActivity).createVideoSource(capturer);
         capturer.startCapture(videoWidth, videoHeight, videoFps);
-        VideoTrack videoTrack = factory.createVideoTrack("ARDAMSv0", videoSource);
+        VideoTrack videoTrack = UnityEGLUtils.getFactory(mainActivity).createVideoTrack("ARDAMSv0", videoSource);
         videoTrack.setEnabled(true);
         videoTrack.addRenderer(new VideoRenderer(new VideoRenderer.Callbacks() {
             @Override
             public void renderFrame(VideoRenderer.I420Frame i420Frame) {
                 if (i420Frame.yuvFrame) {
                     Log.d(TAG, i420Frame.toString());
+
+                    YuvFrame frame = new YuvFrame(i420Frame);
+                    callback.renderFrameBuffer(i420Frame.width, i420Frame.height, new BufferWrap(frame.getARGBBuffer()), i420Frame);
                 } else {
                     Log.d(TAG, "renderFrame: texture:" + i420Frame.textureId + " size:" + i420Frame.width + "x" + i420Frame.height +
                             " yuvFrame:" + i420Frame.yuvFrame);
+                    callback.renderFrameTexture(i420Frame.width, i420Frame.height, i420Frame.textureId, i420Frame);
                 }
-                callback.renderFrame(i420Frame);
             }
         }));
         Log.d(TAG, "onVideoCapturerStarted");
