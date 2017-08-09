@@ -5,7 +5,9 @@ using UnityEngine;
 namespace iBicha
 {
 	public class WebRTCAndroid : WebRTC {
+#if !UNITY_EDITOR
 		[RuntimeInitializeOnLoadMethod]
+#endif
 		static void eglContextSet()
 		{
 			ThreadUtils.RunOnUpdate (() => {

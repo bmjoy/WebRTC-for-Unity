@@ -1,5 +1,6 @@
 package com.ibicha.webrtc;
 
+import android.app.Activity;
 import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
 import android.opengl.EGLConfig;
@@ -26,11 +27,33 @@ import org.webrtc.VideoRenderer;
 public class UnityEGLContext {
     private static final String TAG = UnityEGLContext.class.getSimpleName();
 
-    public static EglBase attachToUnity(PeerConnectionFactory factory) {
+
+    private static PeerConnectionFactory factory;
+
+    public static PeerConnectionFactory getFactory(Activity mainActivity) {
+        if (factory != null) {
+            return factory;
+        }
+        PeerConnectionFactory.initializeAndroidGlobals(mainActivity.getApplicationContext(), WebRTC.hwAccelerate);
+        factory = new PeerConnectionFactory(new PeerConnectionFactory.Options());
+
+        if(WebRTC.hwAccelerate){
+            factory.setVideoHwAccelerationOptions(getRootEglBase().getEglBaseContext(), getRootEglBase().getEglBaseContext());
+        }
+
+        return factory;
+    }
+
+    private static EglBase rootEglBase;
+
+    static EglBase getRootEglBase() {
         //If no acceleration, no need for any EGL work.
         if (!WebRTC.hwAccelerate)
             return null;
 
+        if (rootEglBase != null) {
+            return rootEglBase;
+        }
         //First approach: creating a context, getting config attributes, and let EglBase handle it.
 
         EGLContext eglContext = unityContext; // getEglContext();
@@ -40,8 +63,6 @@ public class UnityEGLContext {
 
         EglBase rootEglBase = EglBase.createEgl14(eglContext, configAttributes);
         rootEglBase.createDummyPbufferSurface();
-        rootEglBase.makeCurrent();
-        factory.setVideoHwAccelerationOptions(rootEglBase.getEglBaseContext(), rootEglBase.getEglBaseContext());
         return rootEglBase;
         //Second approach: pass the unityContext that we recovered while in the rendering thread (in the Update method)
         //Wrap it and pass it to the factory.
@@ -65,6 +86,7 @@ public class UnityEGLContext {
         }
         return context;
     }
+
     public static void KillFrame(VideoRenderer.I420Frame i420Frame) {
         VideoRenderer.renderFrameDone(i420Frame);
     }
