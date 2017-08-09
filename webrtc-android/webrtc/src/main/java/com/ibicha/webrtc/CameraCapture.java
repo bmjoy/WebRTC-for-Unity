@@ -71,6 +71,8 @@ public class CameraCapture {
                 } else {
                     Log.d(TAG, "renderFrame: texture:" + i420Frame.textureId + " size:" + i420Frame.width + "x" + i420Frame.height +
                             " yuvFrame:" + i420Frame.yuvFrame);
+
+                    UnityEGLUtils.printTextInfo(i420Frame.textureId);
                     callback.renderFrameTexture(i420Frame.width, i420Frame.height, i420Frame.textureId, i420Frame);
                 }
             }
@@ -89,8 +91,6 @@ public class CameraCapture {
         callback.onVideoCapturerStarted(videoTrack);
 
     }
-
-    static int frames = 0;
 
     static VideoFileRenderer fileRenderer;
 

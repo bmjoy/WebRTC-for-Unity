@@ -6,11 +6,14 @@ import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
+import android.opengl.GLES31;
 import android.util.Log;
 
 import org.webrtc.EglBase;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoRenderer;
+
+import java.util.HashMap;
 
 /**
  * Created by bhadriche on 8/1/2017.
@@ -35,7 +38,7 @@ public class UnityEGLUtils {
         PeerConnectionFactory.initializeAndroidGlobals(mainActivity.getApplicationContext(), WebRTC.hwAccelerate);
         factory = new PeerConnectionFactory(new PeerConnectionFactory.Options());
 
-        if(WebRTC.hwAccelerate){
+        if (WebRTC.hwAccelerate) {
             factory.setVideoHwAccelerationOptions(getRootEglBase().getEglBaseContext(), getRootEglBase().getEglBaseContext());
         }
 
@@ -102,6 +105,31 @@ public class UnityEGLUtils {
         }
         if (unityReadSurface == EGL14.EGL_NO_SURFACE) {
             Log.d(TAG, "eglContextSet: unityReadSurface == EGL_NO_SURFACE");
+        }
+        Log.d(TAG, "eglContextSet: DONE");
+
+    }
+
+
+    public static void printTextInfo(int tex) {
+
+        int[] ret = new int[1];
+        HashMap<Integer, String> info = new HashMap<>();
+        info.put(GLES31.GL_TEXTURE_WIDTH, "GL_TEXTURE_WIDTH");
+        info.put(GLES31.GL_TEXTURE_HEIGHT, "GL_TEXTURE_HEIGHT");
+        info.put(GLES31.GL_TEXTURE_DEPTH, "GL_TEXTURE_DEPTH");
+        info.put(GLES31.GL_TEXTURE_INTERNAL_FORMAT, "GL_TEXTURE_INTERNAL_FORMAT");
+        info.put(GLES31.GL_TEXTURE_RED_SIZE, "GL_TEXTURE_RED_SIZE");
+        info.put(GLES31.GL_TEXTURE_GREEN_SIZE, "GL_TEXTURE_GREEN_SIZE");
+        info.put(GLES31.GL_TEXTURE_BLUE_SIZE, "GL_TEXTURE_BLUE_SIZE");
+        info.put(GLES31.GL_TEXTURE_ALPHA_SIZE, "GL_TEXTURE_ALPHA_SIZE");
+        info.put(GLES31.GL_TEXTURE_DEPTH_SIZE, "GL_TEXTURE_DEPTH_SIZE");
+        info.put(GLES31.GL_TEXTURE_COMPRESSED, "GL_TEXTURE_COMPRESSED");
+
+        for (Integer key : info.keySet()) {
+            GLES31.glGetTexLevelParameteriv(GLES31.GL_TEXTURE_2D, 0, key, ret, 0);
+            Log.d(TAG, "printTextInfo: " + info.get(key) + " " + ret[0]);
+            ret[0] = 0;
         }
 
     }
