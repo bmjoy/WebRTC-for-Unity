@@ -9,7 +9,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.WindowManager;
 
-import org.webrtc.PeerConnectionFactory;
 import org.webrtc.ScreenCapturerAndroid;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
@@ -101,9 +100,9 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
 
 
 
-        VideoSource videoSource = UnityEGLContext.getFactory(mainActivity).createVideoSource(capturer);
+        VideoSource videoSource = UnityEGLUtils.getFactory(mainActivity).createVideoSource(capturer);
         capturer.startCapture(videoWidth, videoHeight, videoFps);
-        VideoTrack videoTrack = UnityEGLContext.getFactory(mainActivity).createVideoTrack("ARDAMSv0", videoSource);
+        VideoTrack videoTrack = UnityEGLUtils.getFactory(mainActivity).createVideoTrack("ARDAMSv0", videoSource);
         videoTrack.setEnabled(true);
         videoTrack.addRenderer(new VideoRenderer(new VideoRenderer.Callbacks() {
             @Override

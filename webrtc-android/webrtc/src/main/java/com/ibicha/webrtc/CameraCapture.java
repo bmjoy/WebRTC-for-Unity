@@ -2,28 +2,16 @@ package com.ibicha.webrtc;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.YuvImage;
-import android.os.Environment;
 import android.util.Log;
 
 import org.webrtc.Camera1Enumerator;
-import org.webrtc.Camera2Enumerator;
 import org.webrtc.CameraEnumerator;
-import org.webrtc.EglBase;
-import org.webrtc.FileVideoCapturer;
 import org.webrtc.Logging;
-import org.webrtc.RendererCommon;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoFileRenderer;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.ByteBuffer;
 
 
 /**
@@ -69,9 +57,9 @@ public class CameraCapture {
         final int finalVideoFps = videoFps;
 
 
-        VideoSource videoSource = UnityEGLContext.getFactory(mainActivity).createVideoSource(videoCapturer);
+        VideoSource videoSource = UnityEGLUtils.getFactory(mainActivity).createVideoSource(videoCapturer);
         videoCapturer.startCapture(finalVideoWidth, finalVideoHeight, finalVideoFps);
-        VideoTrack videoTrack = UnityEGLContext.getFactory(mainActivity).createVideoTrack("ARDAMSv0", videoSource);
+        VideoTrack videoTrack = UnityEGLUtils.getFactory(mainActivity).createVideoTrack("ARDAMSv0", videoSource);
         videoTrack.setEnabled(true);
         videoTrack.addRenderer(new VideoRenderer(new VideoRenderer.Callbacks() {
             @Override

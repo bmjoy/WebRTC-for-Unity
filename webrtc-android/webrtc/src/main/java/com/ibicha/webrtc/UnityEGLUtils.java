@@ -1,34 +1,32 @@
 package com.ibicha.webrtc;
 
 import android.app.Activity;
-import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
 import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
-import android.view.Surface;
 
 import org.webrtc.EglBase;
-import org.webrtc.EglBase14Wrapper;
-import org.webrtc.GlRectDrawer;
 import org.webrtc.PeerConnectionFactory;
-import org.webrtc.SurfaceTextureHelper;
-import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoRenderer;
 
 /**
  * Created by bhadriche on 8/1/2017.
  */
 
-public class UnityEGLContext {
-    private static final String TAG = UnityEGLContext.class.getSimpleName();
+public class UnityEGLUtils {
+    private static final String TAG = UnityEGLUtils.class.getSimpleName();
 
 
     private static PeerConnectionFactory factory;
+    private static EglBase rootEglBase;
+
+    public static EGLContext unityContext = EGL14.EGL_NO_CONTEXT;
+    public static EGLDisplay unityDisplay = EGL14.EGL_NO_DISPLAY;
+    public static EGLSurface unityDrawSurface = EGL14.EGL_NO_SURFACE;
+    public static EGLSurface unityReadSurface = EGL14.EGL_NO_SURFACE;
 
     public static PeerConnectionFactory getFactory(Activity mainActivity) {
         if (factory != null) {
@@ -44,7 +42,6 @@ public class UnityEGLContext {
         return factory;
     }
 
-    private static EglBase rootEglBase;
 
     static EglBase getRootEglBase() {
         //If no acceleration, no need for any EGL work.
@@ -71,15 +68,10 @@ public class UnityEGLContext {
 //        factory.setVideoHwAccelerationOptions(contextWrapper.getEglBaseContext(), contextWrapper.getEglBaseContext());
     }
 
-    public static EGLContext unityContext = EGL14.EGL_NO_CONTEXT;
-    public static EGLDisplay unityDisplay = EGL14.EGL_NO_DISPLAY;
-    public static EGLSurface unityDrawSurface = EGL14.EGL_NO_SURFACE;
-    public static EGLSurface unityReadSurface = EGL14.EGL_NO_SURFACE;
-
     private static EGLContext getEglContext() {
         EGLContext context = EGL14.eglGetCurrentContext();
         if (context == EGL14.EGL_NO_CONTEXT) {
-            context = UnityEGLContext.unityContext;
+            context = UnityEGLUtils.unityContext;
             if (context == EGL14.EGL_NO_CONTEXT) {
                 Log.d(TAG, "getEglContext: EGL_NO_CONTEXT");
             }
