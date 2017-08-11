@@ -4,49 +4,42 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 	}
+
 	SubShader
 	{
 		Tags { "RenderType"="Opaque" }
 		LOD 100
 
-		Pass
-		{
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
-
-			#include "UnityCG.cginc"
-
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
-			};
-
-			struct v2f
-			{
-				float2 uv : TEXCOORD0;
-				float4 vertex : SV_POSITION;
-			};
-
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
-			
-			v2f vert (appdata v)
-			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-				return o;
-			}
-			
-			fixed4 frag (v2f i) : SV_Target
-			{
-				// sample the texture
-				fixed4 col = tex2D(_MainTex, i.uv);
-				return col;
-			}
-			ENDCG
-		}
+         Pass 
+         {
+             GLSLPROGRAM       
+ 
+             #ifdef VERTEX
+             varying vec2 TextureCoordinate;
+             void main()
+             {
+                 gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+                 TextureCoordinate = gl_MultiTexCoord0.xy;
+             }
+             #endif
+            
+             #ifdef FRAGMENT
+             // require GL_OES_EGL_image_external so we can access the external texture data on android's GPU
+             #extension GL_OES_EGL_image_external : require
+             //precision mediump float; // added
+             varying vec2 TextureCoordinate;
+             //uniform sampler2D _MainTex;
+             uniform samplerExternalOES _MainTex; // replaced above line with this in order to use GL_OES_EGL_image_external
+            
+             void main()
+             {
+                 gl_FragColor = texture2D(_MainTex, TextureCoordinate);
+             }
+             #endif
+ 
+             ENDGLSL
+         }
 	}
+
+	FallBack "Unlit/Texture"
 }

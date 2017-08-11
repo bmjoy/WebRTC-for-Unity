@@ -72,7 +72,6 @@ public class CameraCapture {
                     Log.d(TAG, "renderFrame: texture:" + i420Frame.textureId + " size:" + i420Frame.width + "x" + i420Frame.height +
                             " yuvFrame:" + i420Frame.yuvFrame);
 
-                    UnityEGLUtils.printTextInfo(i420Frame.textureId);
                     callback.renderFrameTexture(i420Frame.width, i420Frame.height, i420Frame.textureId, i420Frame);
                 }
             }

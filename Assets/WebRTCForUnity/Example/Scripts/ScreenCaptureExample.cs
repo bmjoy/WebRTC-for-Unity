@@ -12,7 +12,7 @@ public class ScreenCaptureExample : MonoBehaviour {
 
 
 	public void StartCameraCapture () {
-		CameraCapture.StartCameraCapture (false, textureProxy.screenCaptureCallback);
+		CameraCapture.StartCameraCapture (true, textureProxy.screenCaptureCallback);
 	}
 
 }

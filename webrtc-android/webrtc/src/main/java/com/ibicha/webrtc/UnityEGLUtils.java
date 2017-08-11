@@ -1,15 +1,20 @@
 package com.ibicha.webrtc;
 
 import android.app.Activity;
+import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
 import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
+import android.opengl.GLES11Ext;
+import android.opengl.GLES20;
 import android.opengl.GLES31;
+import android.opengl.GLES31Ext;
 import android.util.Log;
 
 import org.webrtc.EglBase;
+import org.webrtc.EglBase14Ex;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoRenderer;
 
@@ -60,8 +65,15 @@ public class UnityEGLUtils {
         EGLDisplay eglDisplay = unityDisplay; // getEglDisplay();
         int[] configAttributes = getEglConfigAttr(eglDisplay, eglContext);
 //        int[] configAttributes = EglBase.CONFIG_PIXEL_RGBA_BUFFER;
+        int[] clientVersion = {2};
+        if (!EGL14.eglQueryContext(eglDisplay, eglContext, EGL14.EGL_CONTEXT_CLIENT_VERSION, clientVersion, 0)) {
+            throw new RuntimeException("eglQueryContext failed: 0x" + Integer.toHexString(EGL14.eglGetError()));
+        }
 
-        EglBase rootEglBase = EglBase.createEgl14(eglContext, configAttributes);
+        Log.d(TAG, "getRootEglBase: clientVersion: " + clientVersion[0]);
+
+        rootEglBase = EglBase14Ex.create(new org.webrtc.EglBase14Ex.Context(eglContext), unityDisplay, configAttributes, clientVersion[0]);// EglBase.createEgl14(eglContext, configAttributes);
+//        rootEglBase.createPbufferSurface(1280, 720);
         rootEglBase.createDummyPbufferSurface();
         return rootEglBase;
         //Second approach: pass the unityContext that we recovered while in the rendering thread (in the Update method)
@@ -110,31 +122,7 @@ public class UnityEGLUtils {
 
     }
 
-
-    public static void printTextInfo(int tex) {
-
-        int[] ret = new int[1];
-        HashMap<Integer, String> info = new HashMap<>();
-        info.put(GLES31.GL_TEXTURE_WIDTH, "GL_TEXTURE_WIDTH");
-        info.put(GLES31.GL_TEXTURE_HEIGHT, "GL_TEXTURE_HEIGHT");
-        info.put(GLES31.GL_TEXTURE_DEPTH, "GL_TEXTURE_DEPTH");
-        info.put(GLES31.GL_TEXTURE_INTERNAL_FORMAT, "GL_TEXTURE_INTERNAL_FORMAT");
-        info.put(GLES31.GL_TEXTURE_RED_SIZE, "GL_TEXTURE_RED_SIZE");
-        info.put(GLES31.GL_TEXTURE_GREEN_SIZE, "GL_TEXTURE_GREEN_SIZE");
-        info.put(GLES31.GL_TEXTURE_BLUE_SIZE, "GL_TEXTURE_BLUE_SIZE");
-        info.put(GLES31.GL_TEXTURE_ALPHA_SIZE, "GL_TEXTURE_ALPHA_SIZE");
-        info.put(GLES31.GL_TEXTURE_DEPTH_SIZE, "GL_TEXTURE_DEPTH_SIZE");
-        info.put(GLES31.GL_TEXTURE_COMPRESSED, "GL_TEXTURE_COMPRESSED");
-
-        for (Integer key : info.keySet()) {
-            GLES31.glGetTexLevelParameteriv(GLES31.GL_TEXTURE_2D, 0, key, ret, 0);
-            Log.d(TAG, "printTextInfo: " + info.get(key) + " " + ret[0]);
-            ret[0] = 0;
-        }
-
-    }
-
-    public static void switchToUnityContext() {
+     public static void switchToUnityContext() {
         if (unityContext == EGL14.EGL_NO_CONTEXT) {
             Log.d(TAG, "switchToUnityContext: unityContext == EGL14.EGL_NO_CONTEXT");
             return;

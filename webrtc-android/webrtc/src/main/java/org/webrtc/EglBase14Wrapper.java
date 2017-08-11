@@ -1,5 +1,6 @@
 package org.webrtc;
 
+import android.opengl.EGL14;
 import android.opengl.EGLContext;
 
 /**
@@ -8,8 +9,9 @@ import android.opengl.EGLContext;
 
 public class EglBase14Wrapper {
     EglBase14.Context eglBase14Context;
-    public EglBase14Wrapper(EGLContext context){
-            this.eglBase14Context = new EglBase14.Context(context);
+
+    public EglBase14Wrapper(EGLContext context) {
+        this.eglBase14Context = new EglBase14.Context(context);
     }
 
     public EglBase14.Context getEglBaseContext() {

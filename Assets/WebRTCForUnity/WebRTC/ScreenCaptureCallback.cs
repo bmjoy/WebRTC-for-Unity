@@ -28,18 +28,18 @@ namespace iBicha {
 
 
 		public void renderFrameTexture(int width, int height, int texture, AndroidJavaObject i420Frame){
-			ThreadUtils.RunOnUpdate (() => {
+			ThreadUtils.RunOnPreRender (() => {
 				IntPtr textureId = new IntPtr(texture);
 				if(nativeTexture == null) {
-					nativeTexture = Texture2D.CreateExternalTexture(width, height, TextureFormat.RGBA32, false,false, textureId);
+					nativeTexture = Texture2D.CreateExternalTexture(width, height, TextureFormat.YUY2, false,false, textureId);
 				} else {
 					nativeTexture.UpdateExternalTexture(textureId);
 				}
 
-				if(TextureBuffers == null || TextureBuffers[0].width != width || TextureBuffers[0].height != height) {
+				/*if(TextureBuffers == null || TextureBuffers[0].width != width || TextureBuffers[0].height != height) {
 					TextureBuffers = new Texture2D[2];
 					for (int i = 0; i < TextureBuffers.Length; i++) {
-						TextureBuffers[i] =new Texture2D(width, height, TextureFormat.RGBA32, false);
+						TextureBuffers[i] =new Texture2D(width, height, TextureFormat.YUY2, false);
 						Graphics.ConvertTexture(nativeTexture, TextureBuffers[i]);
 						TextureBuffers[i].filterMode = FilterMode.Point;
 						TextureBuffers[i].wrapMode = TextureWrapMode.Clamp;
@@ -47,11 +47,12 @@ namespace iBicha {
 				}
 
 				Graphics.CopyTexture(nativeTexture, TextureBuffers[bufferIndex]);
-
+				*/
 				Action<Texture2D> OnTextureHandler = OnTexture;
 				if (OnTextureHandler != null) {
-					OnTextureHandler (TextureBuffers[bufferIndex]);
-					bufferIndex = (bufferIndex + 1) % 2;
+					OnTextureHandler (nativeTexture);
+					/*OnTextureHandler (TextureBuffers[bufferIndex]);
+					bufferIndex = (bufferIndex + 1) % 2;*/
 				}
 
 				ThreadUtils.RunOnPostRender(()=>{
