@@ -49,6 +49,11 @@ namespace iBicha
 		{
 
 			ThreadUtils.RunOnPreRender (() => {
+				if (!WebRTCmat.shader.isSupported) {
+					onVideoCapturerError ("Unsupported shader");
+					return;
+				}
+
 				IntPtr textureId = new IntPtr (textureName);
 				if (nativeTexture!= null || this.width != width || this.height != height) {
 					CleanUp();

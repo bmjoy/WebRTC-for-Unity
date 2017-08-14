@@ -64,7 +64,7 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
             videoHeight = displayMetrics.heightPixels;
         }
         if (videoFps == 0) {
-            videoFps = 15;
+            videoFps = 30;
         }
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;

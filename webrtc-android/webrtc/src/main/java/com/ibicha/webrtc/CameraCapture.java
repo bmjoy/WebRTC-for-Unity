@@ -40,7 +40,7 @@ public class CameraCapture {
             videoHeight = HD_VIDEO_HEIGHT;
         }
         if (videoFps == 0) {
-            videoFps = 15;
+            videoFps = 30;
         }
         CameraCapture.videoWidth = videoWidth;
         CameraCapture.videoHeight = videoHeight;
