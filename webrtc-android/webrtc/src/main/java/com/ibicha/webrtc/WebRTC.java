@@ -19,7 +19,7 @@ import java.lang.reflect.Field;
 public class WebRTC  {
     private static final String TAG = WebRTC.class.getSimpleName();
 
-    public static final boolean hwAccelerate = true;
+    public static final boolean HW_ACCELERATE = true;
 
     private static Activity _mainActivity;
     public static Activity getMainActivity() {

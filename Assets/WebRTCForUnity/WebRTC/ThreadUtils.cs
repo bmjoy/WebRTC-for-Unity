@@ -10,8 +10,9 @@ namespace iBicha
 		static void createInstance()
 		{
 			if (_instance == null) {
-				GameObject go = Camera.main.gameObject;
+				GameObject go = new GameObject ("{ThreadUtils}");;
 				_instance = go.AddComponent<ThreadUtils> ();
+				DontDestroyOnLoad (go);
 			}
 		}
 
@@ -23,8 +24,16 @@ namespace iBicha
 			}
 		}
 
+		private int camerasLeft = 0;
+
 		void Awake() {
-			_instance = this;
+			Camera.onPreRender += onPreRender;
+			Camera.onPostRender += onPostRender;
+		}
+
+		void Destroy() {
+			Camera.onPreRender -= onPreRender;
+			Camera.onPostRender -= onPostRender;
 		}
 
 		public static Queue<Action> updateQueue = new Queue<Action> ();
@@ -56,23 +65,34 @@ namespace iBicha
 			}  
 		}
 
-
-		void Update () {
-			lock (updateQueueLock)  
-			{  
-				DrainQueue (updateQueue);
-			}  
+		void onPreRender(Camera cam) {
+			if (camerasLeft <= 0) {
+				camerasLeft = Camera.allCamerasCount;
+				onPreRenderLoop ();
+			}
 		}
 
+		void onPostRender(Camera cam)
+		{
+			camerasLeft--;
+			if (camerasLeft <= 0) {
+				onPostRenderLoop ();
+			}
+		}
 
-		void OnPreRender() {
+		void Update () {
+			onUpdateLoop ();
+		}
+			
+		void onPreRenderLoop() {
 			lock (preRenderQueueLock)  
 			{  
 				DrainQueue (preRenderQueue);
 			}  
 		}
 
-		public void OnPostRender()
+
+		void onPostRenderLoop()
 		{
 			lock (postRenderQueueLock)  
 			{  
@@ -80,6 +100,12 @@ namespace iBicha
 			}  
 		}
 
+		void onUpdateLoop () {
+			lock (updateQueueLock)  
+			{  
+				DrainQueue (updateQueue);
+			}  
+		}
 
 		void DrainQueue(Queue<Action> queue) {
 			while (queue.Count>0) {

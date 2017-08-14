@@ -3,21 +3,39 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-namespace iBicha {
-	public class ScreenCaptureCallback : AndroidJavaProxy {
-		private int bufferIndex = 0;
-		public Texture2D[] TextureBuffers = null;
+namespace iBicha
+{
+	public class ScreenCaptureCallback : AndroidJavaProxy
+	{
+
+
 		public event Action OnVideoCapturerStarted;
-		public event Action<Texture2D> OnTexture;
+		public event Action<Texture> OnTexture;
 		public event Action OnVideoCapturerStopped;
 		public event Action<string> OnVideoCapturerError;
 
 		private Texture2D nativeTexture;
+		private RenderTexture rTexture;
 
-		public ScreenCaptureCallback () : base ("com.ibicha.webrtc.ScreenCaptureCallback") {
+		private static Material _WebRTCmat;
+		private static Material WebRTCmat{
+			get {
+				if (_WebRTCmat == null) {
+					_WebRTCmat = Resources.Load<Material> ("WebRTCMaterial");
+				}
+				return _WebRTCmat;
+			}
 		}
 
-		public void onVideoCapturerStarted(AndroidJavaObject capturer){
+		private int width;
+		private int height;
+
+		public ScreenCaptureCallback () : base ("com.ibicha.webrtc.ScreenCaptureCallback")
+		{
+		}
+
+		public void onVideoCapturerStarted (AndroidJavaObject capturer)
+		{
 			ThreadUtils.RunOnUpdate (() => {
 				Action OnVideoCapturerStartedHandler = OnVideoCapturerStarted;
 				if (OnVideoCapturerStartedHandler != null) {
@@ -27,71 +45,37 @@ namespace iBicha {
 		}
 
 
-		public void renderFrameTexture(int width, int height, int texture, AndroidJavaObject i420Frame){
+		public void renderFrame (int width, int height, int textureName, AndroidJavaObject i420Frame)
+		{
+
 			ThreadUtils.RunOnPreRender (() => {
-				IntPtr textureId = new IntPtr(texture);
-				if(nativeTexture == null) {
-					nativeTexture = Texture2D.CreateExternalTexture(width, height, TextureFormat.YUY2, false,false, textureId);
+				IntPtr textureId = new IntPtr (textureName);
+				if (nativeTexture!= null || this.width != width || this.height != height) {
+					CleanUp();
+					this.width = width;
+					this.height = height;
+					nativeTexture = Texture2D.CreateExternalTexture (width, height, TextureFormat.YUY2, false, false, textureId);
+					rTexture = new RenderTexture (width, height, 0, RenderTextureFormat.ARGB32);
+			
+					Action<Texture> OnTextureHandler = OnTexture;
+					if (OnTextureHandler != null) {
+						OnTextureHandler (rTexture);
+					}
+
 				} else {
-					nativeTexture.UpdateExternalTexture(textureId);
+					nativeTexture.UpdateExternalTexture (textureId);
 				}
 
-				/*if(TextureBuffers == null || TextureBuffers[0].width != width || TextureBuffers[0].height != height) {
-					TextureBuffers = new Texture2D[2];
-					for (int i = 0; i < TextureBuffers.Length; i++) {
-						TextureBuffers[i] =new Texture2D(width, height, TextureFormat.YUY2, false);
-						Graphics.ConvertTexture(nativeTexture, TextureBuffers[i]);
-						TextureBuffers[i].filterMode = FilterMode.Point;
-						TextureBuffers[i].wrapMode = TextureWrapMode.Clamp;
-					}
-				}
+				Graphics.Blit (nativeTexture, rTexture, WebRTCmat);
 
-				Graphics.CopyTexture(nativeTexture, TextureBuffers[bufferIndex]);
-				*/
-				Action<Texture2D> OnTextureHandler = OnTexture;
-				if (OnTextureHandler != null) {
-					OnTextureHandler (nativeTexture);
-					/*OnTextureHandler (TextureBuffers[bufferIndex]);
-					bufferIndex = (bufferIndex + 1) % 2;*/
-				}
-
-				ThreadUtils.RunOnPostRender(()=>{
-					WebRTCAndroid.KillFrame(i420Frame);
-				});
+				WebRTCAndroid.KillFrame (i420Frame);
 			});
 		}
 
-
-		public void renderFrameBuffer(int width, int height, AndroidJavaObject bufferWrap, AndroidJavaObject i420Frame){
+		public void onVideoCapturerStopped ()
+		{
 			ThreadUtils.RunOnUpdate (() => {
-				if(TextureBuffers == null || TextureBuffers[0].width != width || TextureBuffers[0].height != height) {
-					TextureBuffers = new Texture2D[2];
-					for (int i = 0; i < TextureBuffers.Length; i++) {
-						TextureBuffers[i] = new Texture2D(width, height, TextureFormat.ARGB32, false);
-						TextureBuffers[i].filterMode = FilterMode.Point;
-						TextureBuffers[i].wrapMode = TextureWrapMode.Clamp;
-					}
-				}
-
-				byte[] buffer = bufferWrap.Call<byte[]>("getBuffer");
-				TextureBuffers[bufferIndex].LoadRawTextureData(buffer);
-				TextureBuffers[bufferIndex].Apply();
-				Action<Texture2D> OnTextureHandler = OnTexture;
-				if (OnTextureHandler != null) {
-					OnTextureHandler (TextureBuffers[bufferIndex]);
-					bufferIndex = (bufferIndex + 1) % 2;
-				}
-
-				ThreadUtils.RunOnPostRender(()=>{
-					WebRTCAndroid.KillFrame(i420Frame);
-				});
-			});
-		}
-
-
-		public void onVideoCapturerStopped(){
-			ThreadUtils.RunOnUpdate (() => {
-				CleanUp();
+				CleanUp ();
 				Action OnVideoCapturerStoppedHandler = OnVideoCapturerStopped;
 				if (OnVideoCapturerStoppedHandler != null) {
 					OnVideoCapturerStoppedHandler ();
@@ -99,9 +83,10 @@ namespace iBicha {
 			});
 		}
 
-		public void onVideoCapturerError(string error){
+		public void onVideoCapturerError (string error)
+		{
 			ThreadUtils.RunOnUpdate (() => {
-				CleanUp();
+				CleanUp ();
 				Action<string> OnVideoCapturerErrorHandler = OnVideoCapturerError;
 				if (OnVideoCapturerErrorHandler != null) {
 					OnVideoCapturerErrorHandler (error);
@@ -109,14 +94,16 @@ namespace iBicha {
 			});
 		}
 
-		void CleanUp() {
-			if (TextureBuffers != null) {
-				for (int i = 0; i < TextureBuffers.Length; i++) {
-					GameObject.Destroy (TextureBuffers[i]);
-				}
+		void CleanUp ()
+		{
+			if (nativeTexture != null) {
 				GameObject.Destroy (nativeTexture);
-				TextureBuffers = null;
 				nativeTexture = null;
+			}
+			if (rTexture != null) {
+				rTexture.Release ();
+				GameObject.Destroy (rTexture);
+				rTexture = null;
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-﻿Shader "Unlit/Unlit Texture No Fog"
+﻿Shader "WebRTC/VideoShader"
 {
 	Properties
 	{
@@ -20,15 +20,13 @@
              {
                  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
                  TextureCoordinate = gl_MultiTexCoord0.xy;
+                 TextureCoordinate.y = 1.0 - TextureCoordinate.y;
              }
              #endif
             
              #ifdef FRAGMENT
-             // require GL_OES_EGL_image_external so we can access the external texture data on android's GPU
              #extension GL_OES_EGL_image_external : require
-             //precision mediump float; // added
              varying vec2 TextureCoordinate;
-             //uniform sampler2D _MainTex;
              uniform samplerExternalOES _MainTex; // replaced above line with this in order to use GL_OES_EGL_image_external
             
              void main()

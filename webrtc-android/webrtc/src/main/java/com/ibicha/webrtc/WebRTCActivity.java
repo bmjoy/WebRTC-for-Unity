@@ -1,12 +1,6 @@
 package com.ibicha.webrtc;
 
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.opengl.EGL14;
-import android.opengl.EGLContext;
-import android.os.Bundle;
-import android.util.Log;
-
 import com.unity3d.player.UnityPlayer;
 import com.unity3d.player.UnityPlayerActivity;
 

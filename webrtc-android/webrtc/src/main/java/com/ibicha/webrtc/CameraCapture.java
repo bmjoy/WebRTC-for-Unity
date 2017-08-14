@@ -33,11 +33,6 @@ public class CameraCapture {
     }
 
     static void StartCameraCapture(Activity mainActivity, boolean frontCamera, final ScreenCaptureCallback callback, int videoWidth, int videoHeight, int videoFps) {
-        if (fileRenderer != null) {
-            fileRenderer.release();
-            fileRenderer = null;
-            return;
-        }
         final VideoCapturer videoCapturer = createCameraCapturer(mainActivity.getApplicationContext(), frontCamera);
 
         if (videoWidth == 0 || videoHeight == 0) {
@@ -45,7 +40,7 @@ public class CameraCapture {
             videoHeight = HD_VIDEO_HEIGHT;
         }
         if (videoFps == 0) {
-            videoFps = 30;
+            videoFps = 15;
         }
         CameraCapture.videoWidth = videoWidth;
         CameraCapture.videoHeight = videoHeight;
@@ -56,7 +51,6 @@ public class CameraCapture {
         final int finalVideoHeight = videoHeight;
         final int finalVideoFps = videoFps;
 
-
         VideoSource videoSource = UnityEGLUtils.getFactory(mainActivity).createVideoSource(videoCapturer);
         videoCapturer.startCapture(finalVideoWidth, finalVideoHeight, finalVideoFps);
         VideoTrack videoTrack = UnityEGLUtils.getFactory(mainActivity).createVideoTrack("ARDAMSv0", videoSource);
@@ -65,36 +59,20 @@ public class CameraCapture {
             @Override
             public void renderFrame(VideoRenderer.I420Frame i420Frame) {
                 if (i420Frame.yuvFrame) {
-                    Log.d(TAG, i420Frame.toString());
-                    YuvFrame frame = new YuvFrame(i420Frame);
-                    callback.renderFrameBuffer(i420Frame.width, i420Frame.height, new BufferWrap(frame.getARGBBuffer()), i420Frame);
-                } else {
-                    Log.d(TAG, "renderFrame: texture:" + i420Frame.textureId + " size:" + i420Frame.width + "x" + i420Frame.height +
-                            " yuvFrame:" + i420Frame.yuvFrame);
-
-                    callback.renderFrameTexture(i420Frame.width, i420Frame.height, i420Frame.textureId, i420Frame);
+                    throw new UnsupportedOperationException("Only texture frames.");
                 }
+                Log.d(TAG, "renderFrame: texture:" + i420Frame.textureId + " size:" + i420Frame.width + "x" + i420Frame.height +
+                        " rotation:" + i420Frame.rotationDegree);
+                callback.renderFrame(i420Frame.rotatedWidth(), i420Frame.rotatedHeight(), i420Frame.textureId, i420Frame);
+
             }
         }));
-
-//        String file = Environment.getExternalStoragePublicDirectory(
-//                Environment.DIRECTORY_MOVIES) +  "/hello.mp4";
-//        try {
-//            fileRenderer = new VideoFileRenderer(file, finalVideoWidth, finalVideoHeight, rootEglBase.getEglBaseContext());
-//            videoTrack.addRenderer(new VideoRenderer(fileRenderer));
-//        } catch (IOException e) {
-//            throw new RuntimeException(
-//                    "Failed to open video file for output: " + file, e);
-//        }
         Log.d(TAG, "onVideoCapturerStarted");
         callback.onVideoCapturerStarted(videoTrack);
-
     }
 
-    static VideoFileRenderer fileRenderer;
-
     private static VideoCapturer createCameraCapturer(Context context, boolean frontCamera) {
-        CameraEnumerator enumerator = new Camera1Enumerator(WebRTC.hwAccelerate);// new Camera2Enumerator(context);
+        CameraEnumerator enumerator = new Camera1Enumerator(WebRTC.HW_ACCELERATE);// new Camera2Enumerator(context);
         final String[] deviceNames = enumerator.getDeviceNames();
 
         // First, try to find front facing camera

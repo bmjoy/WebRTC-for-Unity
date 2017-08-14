@@ -6,6 +6,6 @@ public class Rotate : MonoBehaviour {
 	public float speed = 10f;
 	// Update is called once per frame
 	void Update () {
-		transform.Rotate (Vector3.one * speed * Time.deltaTime);
+		transform.Rotate (Vector3.right * speed * Time.deltaTime);
 	}
 }

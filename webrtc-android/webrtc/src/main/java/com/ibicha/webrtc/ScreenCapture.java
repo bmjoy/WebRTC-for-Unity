@@ -64,7 +64,7 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
             videoHeight = displayMetrics.heightPixels;
         }
         if (videoFps == 0) {
-            videoFps = 30;
+            videoFps = 15;
         }
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
@@ -108,15 +108,12 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
             @Override
             public void renderFrame(VideoRenderer.I420Frame i420Frame) {
                 if (i420Frame.yuvFrame) {
-                    Log.d(TAG, i420Frame.toString());
-
-                    YuvFrame frame = new YuvFrame(i420Frame);
-                    callback.renderFrameBuffer(i420Frame.width, i420Frame.height, new BufferWrap(frame.getARGBBuffer()), i420Frame);
-                } else {
-                    Log.d(TAG, "renderFrame: texture:" + i420Frame.textureId + " size:" + i420Frame.width + "x" + i420Frame.height +
-                            " yuvFrame:" + i420Frame.yuvFrame);
-                    callback.renderFrameTexture(i420Frame.width, i420Frame.height, i420Frame.textureId, i420Frame);
+                    throw new UnsupportedOperationException("Only texture frames.");
                 }
+                Log.d(TAG, "renderFrame: texture:" + i420Frame.textureId + " size:" + i420Frame.width + "x" + i420Frame.height +
+                        " rotation:" + i420Frame.rotationDegree);
+                callback.renderFrame(i420Frame.rotatedWidth(), i420Frame.rotatedHeight(), i420Frame.textureId, i420Frame);
+
             }
         }));
         Log.d(TAG, "onVideoCapturerStarted");

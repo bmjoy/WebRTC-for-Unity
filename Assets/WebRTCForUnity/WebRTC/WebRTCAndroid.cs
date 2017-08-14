@@ -6,23 +6,20 @@ namespace iBicha
 {
 	public class WebRTCAndroid : WebRTC {
 		[RuntimeInitializeOnLoadMethod]
-		static void eglContextSet()
+		static void setUnityContext()
 		{
 			ThreadUtils.RunOnUpdate (() => {
-				UnityEGLContext_JavaClass.CallStatic ("eglContextSet");
+				UnityEGLContext_JavaClass.CallStatic ("setUnityContext");
 			});
 		}
 
 		public static void KillFrame(AndroidJavaObject i420Frame) {
-			UnityEGLContext_JavaClass.CallStatic ("KillFrame", i420Frame);
-		}
-
-		public static void switchToUnityContext() {
-			UnityEGLContext_JavaClass.CallStatic ("switchToUnityContext");
+			VideoRenderer_JavaClass.CallStatic ("renderFrameDone", i420Frame);
 		}
 
 		static AndroidJavaClass _WebRTC_JavaClass;
 		static AndroidJavaClass _UnityEGLUtils_JavaClass;
+		static AndroidJavaClass _VideoRenderer_JavaClass;
 
 		public static AndroidJavaClass WebRTC_JavaClass {
 			get
@@ -43,6 +40,17 @@ namespace iBicha
 					_UnityEGLUtils_JavaClass = new AndroidJavaClass("com.ibicha.webrtc.UnityEGLUtils");
 				}
 				return _UnityEGLUtils_JavaClass;
+			}
+		}
+
+		public static AndroidJavaClass VideoRenderer_JavaClass {
+			get
+			{
+				if(_VideoRenderer_JavaClass == null)
+				{
+					_VideoRenderer_JavaClass = new AndroidJavaClass("org.webrtc.VideoRenderer");
+				}
+				return _VideoRenderer_JavaClass;
 			}
 		}
 
