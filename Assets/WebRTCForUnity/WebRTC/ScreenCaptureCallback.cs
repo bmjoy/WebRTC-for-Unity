@@ -48,7 +48,7 @@ namespace iBicha
 		public void renderFrame (int width, int height, int textureName, AndroidJavaObject i420Frame)
 		{
 
-			ThreadUtils.RunOnPreRender (() => {
+			ThreadUtils.RunOnUpdate (() => {
 				if (!WebRTCmat.shader.isSupported) {
 					onVideoCapturerError ("Unsupported shader");
 					return;
