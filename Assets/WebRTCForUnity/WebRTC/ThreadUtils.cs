@@ -31,7 +31,7 @@ namespace iBicha
 			Camera.onPostRender += onPostRender;
 		}
 
-		void Destroy() {
+		void OnDestroy() {
 			Camera.onPreRender -= onPreRender;
 			Camera.onPostRender -= onPostRender;
 		}
