@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+
 namespace iBicha
 {
-	public class ScreenCaptureCallback : AndroidJavaProxy
-	{
-
-
-		public event Action OnVideoCapturerStarted;
+	public class VideoCallback : AndroidJavaProxy {
+		public event Action<AndroidJavaObject, AndroidJavaObject> OnVideoCapturerStarted;
 		public event Action<Texture> OnTexture;
 		public event Action OnVideoCapturerStopped;
 		public event Action<string> OnVideoCapturerError;
@@ -30,16 +28,16 @@ namespace iBicha
 		private int width;
 		private int height;
 
-		public ScreenCaptureCallback () : base ("com.ibicha.webrtc.ScreenCaptureCallback")
+		public VideoCallback () : base ("com.ibicha.webrtc.VideoCallback")
 		{
 		}
 
-		public void onVideoCapturerStarted (AndroidJavaObject capturer)
+		public void onVideoCapturerStarted (AndroidJavaObject videoCapturer, AndroidJavaObject videoTrack)
 		{
 			ThreadUtils.RunOnUpdate (() => {
-				Action OnVideoCapturerStartedHandler = OnVideoCapturerStarted;
+				Action<AndroidJavaObject, AndroidJavaObject> OnVideoCapturerStartedHandler = OnVideoCapturerStarted;
 				if (OnVideoCapturerStartedHandler != null) {
-					OnVideoCapturerStartedHandler ();
+					OnVideoCapturerStartedHandler (videoCapturer, videoTrack);
 				}
 			});
 		}
@@ -61,7 +59,7 @@ namespace iBicha
 					this.height = height;
 					nativeTexture = Texture2D.CreateExternalTexture (width, height, TextureFormat.YUY2, false, false, textureId);
 					rTexture = new RenderTexture (width, height, 0, RenderTextureFormat.ARGB32);
-			
+
 					Action<Texture> OnTextureHandler = OnTexture;
 					if (OnTextureHandler != null) {
 						OnTextureHandler (rTexture);
@@ -111,6 +109,7 @@ namespace iBicha
 				rTexture = null;
 			}
 		}
+
 	}
 
 }

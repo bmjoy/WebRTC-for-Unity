@@ -28,11 +28,11 @@ public class CameraCapture {
     private static int videoHeight;
     private static int videoFps;
 
-    static void StartCameraCapture(Activity mainActivity, boolean frontCamera, ScreenCaptureCallback callback) {
+    static void StartCameraCapture(Activity mainActivity, boolean frontCamera, VideoCallback callback) {
         StartCameraCapture(mainActivity, frontCamera, callback, 0, 0, 0);
     }
 
-    static void StartCameraCapture(Activity mainActivity, boolean frontCamera, final ScreenCaptureCallback callback, int videoWidth, int videoHeight, int videoFps) {
+    static void StartCameraCapture(Activity mainActivity, boolean frontCamera, final VideoCallback callback, int videoWidth, int videoHeight, int videoFps) {
         final VideoCapturer videoCapturer = createCameraCapturer(mainActivity.getApplicationContext(), frontCamera);
 
         if (videoWidth == 0 || videoHeight == 0) {
@@ -68,7 +68,7 @@ public class CameraCapture {
             }
         }));
         Log.d(TAG, "onVideoCapturerStarted");
-        callback.onVideoCapturerStarted(videoTrack);
+        callback.onVideoCapturerStarted(videoCapturer, videoTrack);
     }
 
     private static VideoCapturer createCameraCapturer(Context context, boolean frontCamera) {

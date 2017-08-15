@@ -33,7 +33,7 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
 
     private static final int CAPTURE_PERMISSION_REQUEST_CODE = 145;
 
-    private ScreenCaptureCallback callback;
+    private VideoCallback callback;
     private int videoWidth;
     private int videoHeight;
     private int videoFps;
@@ -43,11 +43,11 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
         ActivityResultHelper.addListener(this);
     }
 
-    void StartScreenCapture(Activity mainActivity, ScreenCaptureCallback callback) {
+    void StartScreenCapture(Activity mainActivity, VideoCallback callback) {
         StartScreenCapture(mainActivity, callback, 0, 0, 0);
     }
 
-    void StartScreenCapture(Activity mainActivity, ScreenCaptureCallback callback, int videoWidth, int videoHeight, int videoFps) {
+    void StartScreenCapture(Activity mainActivity, VideoCallback callback, int videoWidth, int videoHeight, int videoFps) {
         if (mainActivity == null) {
             callback.onVideoCapturerError("Could not get main activity.");
             return;
@@ -90,7 +90,7 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
             return;
         }
         Log.d(TAG, "onActivityResult RESULT_OK");
-        final ScreenCapturerAndroid capturer = new ScreenCapturerAndroid(
+        final ScreenCapturerAndroid videoCapturer = new ScreenCapturerAndroid(
                 resultData, new MediaProjection.Callback() {
             @Override
             public void onStop() {
@@ -98,10 +98,8 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
             }
         });
 
-
-
-        VideoSource videoSource = UnityEGLUtils.getFactory(mainActivity).createVideoSource(capturer);
-        capturer.startCapture(videoWidth, videoHeight, videoFps);
+        VideoSource videoSource = UnityEGLUtils.getFactory(mainActivity).createVideoSource(videoCapturer);
+        videoCapturer.startCapture(videoWidth, videoHeight, videoFps);
         VideoTrack videoTrack = UnityEGLUtils.getFactory(mainActivity).createVideoTrack("ARDAMSv0", videoSource);
         videoTrack.setEnabled(true);
         videoTrack.addRenderer(new VideoRenderer(new VideoRenderer.Callbacks() {
@@ -117,7 +115,7 @@ class ScreenCapture implements ActivityResultHelper.ActivityResultListener {
             }
         }));
         Log.d(TAG, "onVideoCapturerStarted");
-        callback.onVideoCapturerStarted(videoTrack);
+        callback.onVideoCapturerStarted(videoCapturer, videoTrack);
 
     }
 }
